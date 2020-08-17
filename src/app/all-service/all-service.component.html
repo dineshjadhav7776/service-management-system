@@ -24,7 +24,7 @@
                             <div class="loading" *ngIf="isLoading">
                                 <h4 >Loading.........</h4>
                             </div>
-                            <div class="card-body" *ngFor="let info of serviceInfo ; let indexOfelement=index">
+                            <div class="card-body" *ngFor="let info of serviceInfo |paginate: { itemsPerPage: 10, currentPage: p } ; let indexOfelement=index">
                                 <table class="table" *ngIf="!isLoading">
                                     <thead>
                                     <tr>
@@ -41,17 +41,18 @@
                                              <img class="rounded" height="124px" width="100px"  *ngIf="imageInfo[indexOfelement] != undefined || isError" [src]="defoultImage">
                                             <img class="rounded" height="124px" width="100px" *ngIf="imageInfo[[indexOfelement]] == undefined" [src]='NoImage'>
                                         </td>
-                                        <td>{{info.updatedAt | date}}</td>
+                                        <td>{{info.updatedAt | date}} {{info.updatedAt | date :"shortTime"}}</td>
                                         <td>
                                             <a class="btn btn-primary" [routerLink]="['/all-service',info.id]">
                                               Edit
                                             </a> || 
-                                            <button class="btn btn-danger">Delete</button>
+                                            <button class="btn btn-danger" (click) = "onDelete(info.id)">Delete</button>
                                         </td>
                                     </tr>
                                     </tbody>
                                 </table>
                             </div>
+                            <pagination-controls (pageChange)="p = $event"></pagination-controls>
                         </div>
                     </div>
                 </div>

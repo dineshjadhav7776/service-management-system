@@ -11,7 +11,9 @@ import { Service } from '../shared/service.model';
   styleUrls: ['./add-service.component.css']
 })
 export class AddServiceComponent implements OnInit, OnDestroy {
-  addServiceForm: FormGroup
+  addServiceForm: FormGroup;
+  isLoading: boolean = false;
+  isError: boolean  = false;
   totolPercentage: number = 0;
 
   TotalPercentageValuesSub: Subscription;
@@ -23,8 +25,8 @@ export class AddServiceComponent implements OnInit, OnDestroy {
   imageURL: string = "/assets/image/noavatar.png";
   fileToUpload: File = null;
   isDisable = false;
-  CurrentUserId;
-  currentUser;
+  editModeServiceId;
+  currentService;
   currentServiceID;
 
   get TotalPercentageValues(): FormArray {
@@ -46,11 +48,11 @@ export class AddServiceComponent implements OnInit, OnDestroy {
     // params subcription for service id
     this.parameSubcription = this.route.params.subscribe(
       (params: Params) =>{
-        this.CurrentUserId = params['id'];
+        this.editModeServiceId = params['id'];
     })
-    this.CurrentUserId = this.route.snapshot.params['id'];
+    this.editModeServiceId = this.route.snapshot.params['id'];
     
-    if(this.CurrentUserId) {
+    if(this.editModeServiceId) {
       this.getServices();
     }
     this.getTotalPercentage()
@@ -59,9 +61,9 @@ export class AddServiceComponent implements OnInit, OnDestroy {
   // form submit
   onSubmit() {
     var uploadData: FormData = new FormData();
-    if (this.CurrentUserId) {
+    if (this.editModeServiceId) {
       const words = this.addServiceForm.value.words;
-      uploadData.append('servicePhotoId', this.CurrentUserId);
+      uploadData.append('servicePhotoId', this.editModeServiceId);
       uploadData.append('words', JSON.stringify(words))
       uploadData.append('image', this.fileToUpload);
       this.UpdateServiceSub = this.crud_Service.updateService(uploadData).subscribe(res => {
@@ -84,7 +86,7 @@ export class AddServiceComponent implements OnInit, OnDestroy {
     this.getTotalPercentage();
     if (this.totolPercentage >= 100) {
       this.isDisable = true;
-      alert('you are reached on your limit')
+      alert('Your allocation limit is only upto 100% ! Please manage your allocation')
     } else {
       const control = this.addServiceForm.get('words') as FormArray;
       control.push(this.fb.group({
@@ -132,17 +134,22 @@ export class AddServiceComponent implements OnInit, OnDestroy {
 
   // get all services
   getServices() {
+    this.isLoading = true;
     this.getAllServiceSub = this.crud_Service.getAllService().subscribe((response: Service) => {
-      this.currentUser = response.response.list.filter(element => {
-        return element.id == this.CurrentUserId;
+      this.isLoading = false;
+      this.currentService = response.response.list.filter(element => {
+        return element.id == this.editModeServiceId;
       })
-      this.currentServiceID = this.currentUser[0].words.map(element => {
+      this.currentServiceID = this.currentService[0].words.map(element => {
         const control = this.addServiceForm.get('words') as FormArray;
         control.push(this.fb.group({
           word: [element.word, Validators.required],
           percentage: [element.percentage, [Validators.required, Validators.min(1), Validators.max(99)]]
         }))
       });
+    }, error=>{
+      this.isError = true;
+      this.isLoading = false;
     })
   }
   

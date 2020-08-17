@@ -11,6 +11,7 @@ import { Subscription, Subscribable } from 'rxjs';
 })
 export class AllServiceComponent implements OnInit , OnDestroy {
   serviceInfo;
+  p: number = 0;
   isError = false;
   imageInfo;
   isLoading = false;
@@ -32,10 +33,17 @@ export class AllServiceComponent implements OnInit , OnDestroy {
   }
 
   // delete service
-  
+  onDelete(id) {
+    if(confirm('Are you sure to delete this Service ?')) {
+      this.removeServiceSub = this.crud_Service.removeService(id).subscribe((res : Service) => {
+        this.getServices();
+      })
+    }
+  }
 
   // get all services
   getServices() {
+    this.isLoading = true;
     this.getAllServiceSub = this.crud_Service.getAllService().subscribe((response : Service) => {
       if(response){
         this.isLoading = false;
